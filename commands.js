@@ -1,6 +1,5 @@
 import "dotenv/config"
-import { getRPSChoices } from "./game.js"
-import { capitalize, InstallGlobalCommands } from "./utils/discord.js"
+import { InstallGlobalCommands } from "./utils/index.js"
 
 const CODE_COMMAND = {
 	name: "code",
@@ -15,10 +14,10 @@ const CODE_COMMAND = {
 			description: "Code type (week|1|2|3|4); leave blank for permanent codes",
 			choices: [
 				{ name: "Weekly", value: "week" },
-				{ name: "1st code: 8am", value: "1" },
-				{ name: "2nd code: 8.30am", value: "2" },
-				{ name: "3rd code: 10am", value: "3" },
-				{ name: "4th code: 11.15am", value: "4" },
+				{ name: "1st", value: "1" },
+				{ name: "2nd", value: "2" },
+				{ name: "3rd", value: "3" },
+				{ name: "4th", value: "4" },
 				{ name: "Permanent/Long-term", value: "permanent" },
 			],
 			required: true,
