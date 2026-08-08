@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises"
 import dayjs from "dayjs"
-import { DiscordRequest, isUnknownMessageError } from "./discord.js"
+import { DiscordRequest, isUnknownMessageError } from "../src/bot/discord.js"
 import { expireCodes } from "./code.js"
 
 const CODE_MESSAGE_SCHEDULES_PATH = new URL("../data/code-message-schedules.json", import.meta.url)

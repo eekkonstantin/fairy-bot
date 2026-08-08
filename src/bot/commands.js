@@ -1,5 +1,5 @@
 import "dotenv/config"
-import { InstallGlobalCommands } from "./utils/index.js"
+import { InstallGlobalCommands } from "../../utils/index.js"
 
 const CODE_COMMAND = {
 	name: "code",
@@ -11,7 +11,7 @@ const CODE_COMMAND = {
 		{
 			type: 3,
 			name: "duration",
-			description: "Code type (week|1|2|3|4); leave blank for permanent codes",
+			description: "Code type (weekly/1st/2nd/3rd/4th); leave blank for permanent codes",
 			choices: [
 				{ name: "Weekly", value: "week" },
 				{ name: "1st", value: "1" },

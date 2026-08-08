@@ -1,7 +1,7 @@
 import { InteractionResponseFlags, InteractionResponseType, InteractionType, MessageComponentTypes, verifyKeyMiddleware } from "discord-interactions"
 import "dotenv/config"
 import express from "express"
-import { addCodeMessageSchedule, DiscordRequest, getMessage, getTimers, processCodeMessageSchedules } from "./utils/index.js"
+import { addCodeMessageSchedule, DiscordRequest, getMessage, getTimers, processCodeMessageSchedules } from "../utils/index.js"
 
 // Create an express app
 const app = express()
