@@ -8,3 +8,15 @@ Discord bot for My Garden Tale.
 * `npm run register` to update commands
 * `npm start` to run the project
 * `ngrok http 3000` to start the communication interface (Check to make sure **General Information/Interactions Endpoint** on [Bot Dashboard](https://discord.com/developers/applications) matches the generated URL)
+
+## Prisma Commands
+Generate and add any changes to the prisma database schema.
+```terminal
+npx prisma migrate dev --name init
+```
+
+Execute the seed file in [`prisma/seed.ts`](./prisma/seed.ts) to populate your database.
+
+```terminal
+npx prisma db seed
+```

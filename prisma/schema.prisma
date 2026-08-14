@@ -1,0 +1,134 @@
+/**
+Generate and add any changes to the prisma database schema.
+```terminal
+npx prisma migrate dev --name init
+```
+*/
+
+generator client {
+  provider   = "prisma-client"
+  output     = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/* Codes */
+model Code {
+  id    Int     @id @default(autoincrement())
+  type String
+  code String
+  content String // message content
+  expireAt DateTime?
+  deleteAt DateTime?
+  expired Boolean @default(false)
+
+  codeMessages CodeMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expired, expireAt])
+  @@index([expired, deleteAt])
+}
+
+model CodeMessage {
+  id    Int     @id @default(autoincrement())
+  messageId String
+  channelId String
+  removed Boolean @default(false) // also for reasons other than expiration, like user removal
+  code Code @relation(fields: [codeId], references: [id])
+  codeId Int
+  addedBy String // discordId of the user who added this code
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([codeId, removed])
+}
+
+// channel IDs where user's fairy runs are announced
+model UserFairyChannels {
+  id    Int     @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  channelId String
+  delay Int // delay in seconds for the fairy run announcement
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/* Gcomp */
+model User {
+  id    Int     @id @default(autoincrement())
+  discordId String  @unique
+  avatar String?
+  username  String
+  gameName String?
+
+  roles Role[]
+
+  guild Guild? @relation(fields: [guildId], references: [id])
+  guildId Int?
+
+  gcompFlowers UserGcompFlower[]
+  ownedFlowers Flower[]
+
+  runChannels UserFairyChannels[]
+  codeChannels String[] // channel IDs where user's codes are announced
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Role {
+  id    Int     @id @default(autoincrement())
+  name  String
+
+  users User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Guild {
+  id    Int     @id @default(autoincrement())
+  guildId String  @unique
+  name  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[]
+}
+
+model Flower {
+  id    Int     @id @default(autoincrement())
+  name  String
+  variation String
+  gcompPoints Int
+  rarity String
+
+  ownedBy User[]
+  gcompUsers UserGcompFlower[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vase {
+  id    Int     @id @default(autoincrement())
+  name  String
+  rarity String
+}
+
+model UserGcompFlower {
+  id    Int     @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  flower Flower @relation(fields: [flowerId], references: [id])
+  flowerId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

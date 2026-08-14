@@ -1,27 +1,43 @@
 {
-  "name": "fairy-bot",
+  "name": "fairy-express",
   "private": true,
   "version": "1.0.0",
   "description": "Bot utils for My Garden Tale",
-  "main": "app.js",
+  "main": "src/app.js",
   "type": "module",
   "engines": {
     "node": ">=18.x"
   },
   "scripts": {
-    "start": "node app.js",
-    "register": "node commands.js",
-    "dev": "nodemon app.js"
+    "start": "tsx src/app.js",
+    "register": "node src/bot/commands.js",
+    "dev": "tsx watch src/app.js"
   },
   "author": "Konstantin",
   "license": "MIT",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dayjs": "^1.11.21",
     "discord-interactions": "^4.0.0",
     "dotenv": "^16.0.3",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "8.20.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.0"
+    "@biomejs/biome": "^2.5.7",
+    "@types/express": "5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "22.18.12",
+    "@types/pg": "8.20.0",
+    "dotenv": "17.3.1",
+    "prisma": "^7.9.1",
+    "tsx": "4.21.0",
+    "typescript": "5.8.2"
   }
 }

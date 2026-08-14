@@ -1,32 +1,37 @@
 import dayjs from "dayjs"
 
 export const getTimers = (duration) => {
-	const daily = dayjs().hour(23).minute(59).second(0).millisecond(0).unix()
+	const daily = dayjs().hour(23).minute(59).second(0).millisecond(0).toDate()
 	switch (duration) {
+		case "test":
+			return {
+				expireAt: dayjs().add(40, "second").toDate(),
+				deleteAt: dayjs().add(1, "minute").toDate(),
+			}
 		case "1":
 			return {
-				expireAt: dayjs().hour(22).minute(0).second(0).millisecond(0).unix(),
+				expireAt: dayjs().hour(22).minute(0).second(0).millisecond(0).toDate(),
 				deleteAt: daily,
 			}
 		case "2":
 			return {
-				expireAt: dayjs().hour(19).minute(0).second(0).millisecond(0).unix(),
+				expireAt: dayjs().hour(19).minute(0).second(0).millisecond(0).toDate(),
 				deleteAt: daily,
 			}
 		case "3":
 			return {
-				expireAt: dayjs().hour(20).minute(30).second(0).millisecond(0).unix(),
+				expireAt: dayjs().hour(20).minute(30).second(0).millisecond(0).toDate(),
 				deleteAt: daily,
 			}
 		case "4":
 			return {
-				expireAt: dayjs().hour(21).minute(45).second(0).millisecond(0).unix(),
+				expireAt: dayjs().hour(21).minute(45).second(0).millisecond(0).toDate(),
 				deleteAt: daily,
 			}
 		case "week":
 			return {
-				expireAt: dayjs().day(0).hour(23).minute(59).second(0).millisecond(0).add(1, "week").unix(),
-				deleteAt: dayjs().day(1).hour(12).minute(0).second(0).millisecond(0).add(1, "week").unix(),
+				expireAt: dayjs().day(0).hour(23).minute(59).second(0).millisecond(0).add(1, "week").toDate(),
+				deleteAt: dayjs().day(1).hour(12).minute(0).second(0).millisecond(0).add(1, "week").toDate(),
 			}
 		default:
 			return {}
@@ -37,6 +42,10 @@ export const splitCodes = (codeArr) => "\`" + codeArr.join("\`\n\`") + "\`"
 
 export const getMessage = (code, duration) => {
 	switch (duration) {
+		case "test": {
+			const testExpiry = dayjs().add(40, "seconds").unix()
+			return `TESTING CODE (expires <t:${testExpiry}:f>):\n\n\`${code}\``
+		}
 		case "1":
 			return `1st code (expires <t:${dayjs().hour(22).minute(0).unix()}:f>):\n\n\`${code}\``
 		case "2":
