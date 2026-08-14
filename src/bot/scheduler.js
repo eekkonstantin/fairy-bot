@@ -1,33 +1,31 @@
-import { readFile, writeFile } from "node:fs/promises"
 import dayjs from "dayjs"
-import { DiscordRequest, isUnknownMessageError } from "../src/bot/discord.js"
-import { expireCodes } from "./code.js"
+import { prisma } from "../db.ts"
+import { DiscordRequest } from "./discord.js"
+import { expireCodes, getTimers } from "./code.js"
 
-const CODE_MESSAGE_SCHEDULES_PATH = new URL("../data/code-message-schedules.json", import.meta.url)
-
-const readCodeMessageSchedules = async () => {
-	try {
-		const fileContent = await readFile(CODE_MESSAGE_SCHEDULES_PATH, "utf8")
-
-		return JSON.parse(fileContent)
-	} catch (error) {
-		if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
-			return []
-		}
-
-		throw error
-	}
-}
-
-const writeCodeMessageSchedules = async (schedules) => {
-	await writeFile(CODE_MESSAGE_SCHEDULES_PATH, JSON.stringify(schedules, null, 2) + "\n")
-}
+const MIN_CHECK_DELAY_MS = 1000
+const MAX_CHECK_DELAY_MS = 60 * 60 * 1000 // fallback poll interval in case a next event can't be determined
 
 export const addCodeMessageSchedule = async (schedule) => {
-	const schedules = await readCodeMessageSchedules()
-
-	schedules.push(schedule)
-	await writeCodeMessageSchedules(schedules)
+	const result = await prisma.code.create({
+		data: {
+			type: schedule.duration,
+			...getTimers(schedule.duration),
+			code: schedule.code,
+			content: schedule.content,
+			codeMessages: {
+				create: [
+					{
+						channelId: schedule.channelId,
+						messageId: schedule.messageId,
+						addedBy: schedule.sentBy,
+					},
+				],
+			},
+		},
+	})
+	wakeScheduler()
+	return result
 }
 
 let isProcessingCodeMessageSchedules = false
@@ -40,59 +38,156 @@ export const processCodeMessageSchedules = async () => {
 	isProcessingCodeMessageSchedules = true
 
 	try {
-		const now = dayjs().unix()
-		const schedules = await readCodeMessageSchedules()
-		const nextSchedules = []
+		const now = dayjs().toDate()
+		const pendingExpiry = await prisma.code.findMany({
+			where: {
+				AND: {
+					expireAt: {
+						lte: now,
+					},
+					expired: false,
+				},
+			},
+			include: {
+				codeMessages: true,
+			},
+		})
+		const pendingDelete = await prisma.code.findMany({
+			where: {
+				AND: {
+					deleteAt: {
+						lte: now,
+					},
+					expired: true,
+					codeMessages: {
+						some: {
+							removed: false,
+						},
+					},
+				},
+			},
+			include: {
+				codeMessages: true,
+			},
+		})
 
-		for (const schedule of schedules) {
-			let shouldKeep = true
-			let hasExpired = schedule.expired
-
-			if (!hasExpired && schedule.expireAt <= now) {
+		for (const pending of pendingExpiry) {
+			let success = 0
+			for (const message of pending.codeMessages) {
 				try {
-					await DiscordRequest(`channels/${schedule.channelId}/messages/${schedule.messageId}`, {
+					await DiscordRequest(`channels/${message.channelId}/messages/${message.messageId}`, {
 						method: "PATCH",
 						body: {
-							content: expireCodes(schedule.content),
+							content: expireCodes(pending.content),
 						},
 					})
-					hasExpired = true
-				} catch (error) {
-					if (isUnknownMessageError(error)) {
-						shouldKeep = false
-					} else {
-						console.error("failed to strike code message", error)
-					}
-				}
-			}
 
-			if (shouldKeep && schedule.deleteAt <= now) {
-				try {
-					await DiscordRequest(`channels/${schedule.channelId}/messages/${schedule.messageId}`, {
-						method: "DELETE",
+					await prisma.code.update({
+						where: { id: pending.id },
+						data: {
+							expired: true,
+						},
 					})
-					shouldKeep = false
+					success++
 				} catch (error) {
-					if (isUnknownMessageError(error)) {
-						shouldKeep = false
-					} else {
-						console.error("failed to delete code message", error)
-					}
+					console.error("failed to strike code message", error)
+					await prisma.codeMessage.update({
+						where: { id: message.id },
+						data: {
+							removed: true,
+						},
+					})
 				}
 			}
-
-			if (shouldKeep) {
-				nextSchedules.push({
-					...schedule,
-					expired: hasExpired,
-				})
-			}
+			console.log(`expired code ID ${pending.id} (${success}/${pending.codeMessages.length} messages)`)
 		}
 
-		await writeCodeMessageSchedules(nextSchedules)
+		for (const pending of pendingDelete) {
+			let success = 0
+			const messages = pending.codeMessages.filter((msg) => !msg.removed)
+			for (const message of messages) {
+				try {
+					await DiscordRequest(`channels/${message.channelId}/messages/${message.messageId}`, {
+						method: "DELETE",
+					})
+
+					await prisma.codeMessage.update({
+						where: { id: message.id },
+						data: {
+							removed: true,
+						},
+					})
+					success++
+				} catch (error) {
+					console.error("failed to delete code message", error)
+					await prisma.codeMessage.update({
+						where: { id: message.id },
+						data: {
+							removed: true,
+						},
+					})
+				}
+			}
+			console.log(`deleted code ID ${pending.id} (${success}/${messages.length} messages - ${pending.codeMessages.length - messages.length} already removed)`)
+		}
 	} catch (error) {
 		console.error("failed to process code message schedules", error)
 	} finally {
 		isProcessingCodeMessageSchedules = false
 	}
+}
+
+let scheduledTimer = null
+
+// Finds the soonest still-pending expiry/delete moment across all codes.
+const getNextEventAt = async () => {
+	const [nextExpiry, nextDelete] = await Promise.all([
+		prisma.code.findFirst({
+			where: { expired: false, expireAt: { not: null } },
+			orderBy: { expireAt: "asc" },
+			select: { expireAt: true },
+		}),
+		prisma.code.findFirst({
+			where: {
+				expired: true,
+				deleteAt: { not: null },
+				codeMessages: { some: { removed: false } },
+			},
+			orderBy: { deleteAt: "asc" },
+			select: { deleteAt: true },
+		}),
+	])
+
+	const candidates = [nextExpiry?.expireAt, nextDelete?.deleteAt].filter(Boolean)
+	if (candidates.length === 0) {
+		return null
+	}
+	return candidates.reduce((earliest, date) => (date < earliest ? date : earliest))
+}
+
+const scheduleNext = (delayMs) => {
+	if (scheduledTimer) {
+		clearTimeout(scheduledTimer)
+	}
+	scheduledTimer = setTimeout(runAndReschedule, delayMs)
+}
+
+const runAndReschedule = async () => {
+	let delay = MAX_CHECK_DELAY_MS
+	try {
+		await processCodeMessageSchedules()
+		const nextEventAt = await getNextEventAt()
+		if (nextEventAt) {
+			delay = Math.min(Math.max(dayjs(nextEventAt).diff(dayjs()), MIN_CHECK_DELAY_MS), MAX_CHECK_DELAY_MS)
+		}
+	} catch (error) {
+		console.error("failed to determine next schedule check", error)
+	} finally {
+		scheduleNext(delay)
+	}
+}
+
+// Cancels any pending wake-up and immediately re-evaluates when the next check should run.
+export const wakeScheduler = () => {
+	runAndReschedule()
 }

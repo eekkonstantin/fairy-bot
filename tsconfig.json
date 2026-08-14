@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
+    "allowJs": true,
+    "checkJs": false,
     "paths": {
       "bot/*": ["./src/bot/*"],
       "api/*": ["./src/api/*"],

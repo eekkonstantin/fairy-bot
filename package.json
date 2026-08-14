@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "tsx src/app.js",
-    "register": "node src/commands.js",
+    "register": "node src/bot/commands.js",
     "dev": "tsx watch src/app.js"
   },
   "author": "Konstantin",

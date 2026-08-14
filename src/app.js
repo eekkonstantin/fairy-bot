@@ -1,22 +1,23 @@
 import { InteractionResponseFlags, InteractionResponseType, InteractionType, MessageComponentTypes, verifyKeyMiddleware } from "discord-interactions"
 import "dotenv/config"
 import express from "express"
-import { addCodeMessageSchedule, DiscordRequest, getMessage, getTimers, processCodeMessageSchedules } from "../utils/index.js"
+import { getMessage } from "./bot/code.js"
+import { DiscordRequest } from "./bot/discord.js"
+import { addCodeMessageSchedule, wakeScheduler } from "./bot/scheduler.js"
 
 // Create an express app
 const app = express()
 // Get port, or default to 3000
 const PORT = process.env.PORT || 3000
 
-const SCHEDULE_POLL_MS = 5 * 1000
-
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
  * Parse request body and verifies incoming requests using discord-interactions package
  */
-app.post("/interactions", verifyKeyMiddleware(process.env.PUBLIC_KEY), async function (req, res) {
+app.post("/interactions", verifyKeyMiddleware(process.env.DISCORD_APP_PUBLIC_KEY), async function (req, res) {
 	// Interaction id, type and data
-	const { id, type, data } = req.body
+	const { id, type, data, member, user } = req.body
+	const caller = member?.user || user
 
 	/**
 	 * Handle verification requests
@@ -37,7 +38,8 @@ app.post("/interactions", verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
 		if (name === "code") {
 			const targetChannelId = optionsMap.get("channel") || req.body.channel_id
 			const messageDuration = optionsMap.get("duration")
-			const messageContent = getMessage(optionsMap.get("code"), messageDuration)
+			const code = optionsMap.get("code")
+			const messageContent = getMessage(code, messageDuration)
 
 			res.send({
 				type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -46,7 +48,7 @@ app.post("/interactions", verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
 					components: [
 						{
 							type: MessageComponentTypes.TEXT_DISPLAY,
-							content: `Posting code \`${optionsMap.get("code")}\` in <#${targetChannelId}>...`,
+							content: `Posting code(s) \`${code}\` in <#${targetChannelId}>...`,
 						},
 					],
 				},
@@ -62,13 +64,15 @@ app.post("/interactions", verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
 				const createdMessage = await response.json()
 
 				if (messageDuration !== "permanent") {
-					await addCodeMessageSchedule({
+					const result = await addCodeMessageSchedule({
+						duration: messageDuration,
+						code,
 						channelId: targetChannelId,
 						messageId: createdMessage.id,
 						content: messageContent,
-						...getTimers(messageDuration),
-						expired: false,
+						sentBy: caller.id,
 					})
+					console.log("added code message schedule id:", result.id)
 				}
 			} catch (error) {
 				console.error("failed to post code message", error)
@@ -85,8 +89,7 @@ app.post("/interactions", verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
 	return res.status(400).json({ error: "unknown interaction type" })
 })
 
-setInterval(processCodeMessageSchedules, SCHEDULE_POLL_MS)
-processCodeMessageSchedules()
+wakeScheduler()
 
 app.listen(PORT, () => {
 	console.log("Listening on port", PORT)

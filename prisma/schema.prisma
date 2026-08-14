@@ -1,3 +1,10 @@
+/**
+Generate and add any changes to the prisma database schema.
+```terminal
+npx prisma migrate dev --name init
+```
+*/
+
 generator client {
   provider   = "prisma-client"
   output     = "./generated"
@@ -11,25 +18,33 @@ datasource db {
 model Code {
   id    Int     @id @default(autoincrement())
   type String
-  codes String[]
+  code String
+  content String // message content
   expireAt DateTime?
   deleteAt DateTime?
+  expired Boolean @default(false)
 
   codeMessages CodeMessage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([expired, expireAt])
+  @@index([expired, deleteAt])
 }
 
 model CodeMessage {
   id    Int     @id @default(autoincrement())
   messageId String
   channelId String
+  removed Boolean @default(false) // also for reasons other than expiration, like user removal
   code Code @relation(fields: [codeId], references: [id])
   codeId Int
   addedBy String // discordId of the user who added this code
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([codeId, removed])
 }
 
 // channel IDs where user's fairy runs are announced
@@ -52,6 +67,8 @@ model User {
   username  String
   gameName String?
 
+  roles Role[]
+
   guild Guild? @relation(fields: [guildId], references: [id])
   guildId Int?
 
@@ -60,6 +77,16 @@ model User {
 
   runChannels UserFairyChannels[]
   codeChannels String[] // channel IDs where user's codes are announced
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Role {
+  id    Int     @id @default(autoincrement())
+  name  String
+
+  users User[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
