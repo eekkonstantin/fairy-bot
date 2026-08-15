@@ -39,7 +39,7 @@ app.post(
 		 */
 		if (type === InteractionType.APPLICATION_COMMAND) {
 			const { name, options } = data
-			console.log("code command received", data, options)
+			console.log("code command received", data)
 			const optionsMap = new Map(options.map((opt) => [opt.name, opt.value]))
 
 			if (name === "code") {

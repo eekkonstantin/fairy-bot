@@ -7,23 +7,48 @@ const MIN_CHECK_DELAY_MS = 1000
 const MAX_CHECK_DELAY_MS = 60 * 60 * 1000 // fallback poll interval in case a next event can't be determined
 
 export const addCodeMessageSchedule = async (schedule) => {
-	const result = await prisma.code.create({
-		data: {
+	const existing = await prisma.code.findFirst({
+		where: {
 			type: schedule.duration,
-			...getTimers(schedule.duration),
 			code: schedule.code,
-			content: schedule.content,
-			codeMessages: {
-				create: [
-					{
-						channelId: schedule.channelId,
-						messageId: schedule.messageId,
-						addedBy: schedule.sentBy,
-					},
-				],
-			},
+			expireAt: getTimers(schedule.duration).expireAt,
 		},
 	})
+
+	console.log("existing code entry:", existing)
+
+	let result
+	if (existing) {
+		// If a code with the same type, code, and content already exists, we can just add a new message to it
+		result = await prisma.codeMessage.create({
+			data: {
+				codeId: existing.id,
+				channelId: schedule.channelId,
+				messageId: schedule.messageId,
+				addedBy: schedule.sentBy,
+			},
+		})
+	} else {
+		// Otherwise, create a new code entry with the associated message
+		result = await prisma.code.create({
+			data: {
+				type: schedule.duration,
+				...getTimers(schedule.duration),
+				code: schedule.code,
+				content: schedule.content,
+				codeMessages: {
+					create: [
+						{
+							channelId: schedule.channelId,
+							messageId: schedule.messageId,
+							addedBy: schedule.sentBy,
+						},
+					],
+				},
+			},
+		})
+	}
+
 	wakeScheduler()
 	return result
 }
