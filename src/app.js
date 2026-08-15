@@ -14,7 +14,19 @@ const PORT = process.env.PORT || 3000
  * Interactions endpoint URL where Discord will send HTTP requests
  * Parse request body and verifies incoming requests using discord-interactions package
  */
-app.post("/interactions", verifyKeyMiddleware(process.env.DISCORD_APP_PUBLIC_KEY), async function (req, res) {
+app.post(
+	"/interactions",
+	// verifyKeyMiddleware is silent on both success and failure, so log arrival here to confirm requests reach the app at all
+	(req, _res, next) => {
+		console.log("interactions request received", {
+			hasSignature: Boolean(req.header("X-Signature-Ed25519")),
+			hasTimestamp: Boolean(req.header("X-Signature-Timestamp")),
+			userAgent: req.header("User-Agent"),
+		})
+		next()
+	},
+	verifyKeyMiddleware(process.env.DISCORD_APP_PUBLIC_KEY),
+	async function (req, res) {
 	// Interaction id, type and data
 	const { id, type, data, member, user } = req.body
 	const caller = member?.user || user
