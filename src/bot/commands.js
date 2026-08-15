@@ -19,7 +19,6 @@ const CODE_COMMAND = {
 				{ name: "3rd", value: "3" },
 				{ name: "4th", value: "4" },
 				{ name: "Permanent/Long-term", value: "permanent" },
-				{ name: "TESTING ONLY", value: "test" },
 			],
 			required: true,
 		},
