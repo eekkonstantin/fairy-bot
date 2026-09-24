@@ -1,3 +1,6 @@
+import dayjs from "dayjs"
+import { prisma } from "../db.js"
+
 export const markDone = async (userId, isRunning) => {
 	// mark the user as having completed their fairy picks for the day
 	console.log(`Marking user ${userId} as done with fairy ${isRunning ? "run" : "picks"} for the day.`)
