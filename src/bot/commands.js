@@ -88,12 +88,8 @@ const FAIRY_COMMANDS = {
 			description: "Undo a previously announced fairy run or max.",
 			options: [
 				{
-					type: 9,
-					name: "user",
-					description: "The user to undo the fairy run or max for (defaults to yourself).",
-				},
-				{
-					type: 5,
+					type: 3,
+					required: true,
 					name: "what",
 					description: "Specify what to undo.",
 					choices: [
@@ -101,6 +97,11 @@ const FAIRY_COMMANDS = {
 						{ name: "max", value: "max" },
 						{ name: "both", value: "both" },
 					],
+				},
+				{
+					type: 9,
+					name: "user",
+					description: "The user to undo the fairy run or max for (defaults to yourself).",
 				},
 			],
 		},
