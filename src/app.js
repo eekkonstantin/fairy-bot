@@ -3,6 +3,7 @@ import "dotenv/config"
 import express from "express"
 import { getMessage } from "./bot/code.js"
 import { DiscordRequest } from "./bot/discord.js"
+import { fairyWho, markDone } from "./bot/fairy.js"
 import { addCodeMessageSchedule, wakeScheduler } from "./bot/scheduler.js"
 
 // Create an express app
@@ -98,7 +99,7 @@ app.post(
 					const user = optionsMap.get("sub") || caller.id
 					const thankUser = optionsMap.get("thank")
 
-					// markDone(user)
+					markDone(user)
 					if (thankUser) {
 						// Optionally handle thanking the user here
 						res.send({
