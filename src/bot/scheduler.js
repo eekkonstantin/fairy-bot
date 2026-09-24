@@ -1,7 +1,7 @@
 import dayjs from "dayjs"
 import { prisma } from "../db.ts"
-import { DiscordRequest } from "./discord.js"
 import { expireCodes, getTimers } from "./code.js"
+import { DiscordRequest } from "./discord.js"
 
 const MIN_CHECK_DELAY_MS = 1000
 const MAX_CHECK_DELAY_MS = 60 * 60 * 1000 // fallback poll interval in case a next event can't be determined
@@ -99,6 +99,7 @@ export const processCodeMessageSchedules = async () => {
 		for (const pending of pendingExpiry) {
 			let success = 0
 			for (const message of pending.codeMessages) {
+				if (message.removed) continue
 				try {
 					await DiscordRequest(`channels/${message.channelId}/messages/${message.messageId}`, {
 						method: "PATCH",
@@ -159,6 +160,7 @@ export const processCodeMessageSchedules = async () => {
 		console.error("failed to process code message schedules", error)
 	} finally {
 		isProcessingCodeMessageSchedules = false
+		console.log("Finished processing code message schedules")
 	}
 }
 
@@ -168,7 +170,11 @@ let scheduledTimer = null
 const getNextEventAt = async () => {
 	const [nextExpiry, nextDelete] = await Promise.all([
 		prisma.code.findFirst({
-			where: { expired: false, expireAt: { not: null } },
+			where: {
+				expired: false,
+				expireAt: { not: null },
+				codeMessages: { some: { removed: false } },
+			},
 			orderBy: { expireAt: "asc" },
 			select: { expireAt: true },
 		}),
@@ -184,6 +190,8 @@ const getNextEventAt = async () => {
 	])
 
 	const candidates = [nextExpiry?.expireAt, nextDelete?.deleteAt].filter(Boolean)
+	console.log("Next event candidates:", candidates)
+	console.log(nextExpiry, nextDelete)
 	if (candidates.length === 0) {
 		return null
 	}

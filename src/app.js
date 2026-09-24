@@ -17,13 +17,13 @@ const PORT = process.env.PORT || 3000
 app.post(
 	"/interactions",
 	// verifyKeyMiddleware is silent on both success and failure, so log arrival here to confirm requests reach the app at all
-	(req, _res, next) => {
+	(_req, _res, next) => {
 		next()
 	},
 	verifyKeyMiddleware(process.env.DISCORD_APP_PUBLIC_KEY),
-	async function (req, res) {
+	async (req, res) => {
 		// Interaction id, type and data
-		const { id, type, data, member, user } = req.body
+		const { type, data, member, user } = req.body
 		const caller = member?.user || user
 
 		/**
@@ -86,6 +86,34 @@ app.post(
 				}
 
 				return
+			}
+
+			if (name === "fairy maxed") {
+				const user = optionsMap.get("sub") || caller.id
+				const thankUser = optionsMap.get("thank")
+
+				// markDone(user)
+				// if (thankUser) {
+				// 	// Optionally handle thanking the user here
+				// 	res.send({
+				// 		type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+				// 		data: {
+				// 			content: `<@${user}> is maxed for today! Thanks <@${thankUser}>!`,
+				// 		},
+				// 	})
+				// }
+				return
+			}
+
+			if (name === "fairy who") {
+				const serverId = req.body.guild_id
+				const usersInServer = await fairyWho(serverId)
+				return res.send({
+					type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+					data: {
+						content: `Users in server: ${JSON.stringify(usersInServer)}`,
+					},
+				})
 			}
 
 			console.error(`unknown command: ${name}`)
