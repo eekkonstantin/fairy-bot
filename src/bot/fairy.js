@@ -23,7 +23,7 @@ export const markDone = async (userId, isRunning) => {
 		console.log(`User ${userId} not found. Creating record...`)
 		const findUser = await fetch(`https://discord.com/api/users/${userId}`, {
 			headers: {
-				Authorization: `Bot ${process.env.BOT_TOKEN}`,
+				Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
 			},
 		})
 		const userData = await findUser.json()
@@ -45,7 +45,7 @@ export const fairyWho = async (serverId) => {
 
 	const usersInServer = await fetch(`https://discord.com/api/v10/guilds/${serverId}/members?limit=1000`, {
 		headers: {
-			Authorization: `Bot ${process.env.BOT_TOKEN}`,
+			Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
 		},
 	})
 	const serverUsersData = await usersInServer.json()
