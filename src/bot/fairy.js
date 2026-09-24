@@ -47,7 +47,7 @@ export const markDone = async (userId, isRunning) => {
 
 export const fairyWho = async (serverId) => {
 	// check who in the current channel has maxed fairy picks for the day
-	console.log(`Checking who in server has maxed fairy picks for today (${dayjs().format("D MMM YYYY")}).`)
+	console.log(`Checking who in server has maxed fairy picks for today (${dayjs().tz("Asia/Singapore").format("D MMM YYYY")}).`)
 
 	const usersInServer = await fetch(`https://discord.com/api/v10/guilds/${serverId}/members?limit=1000`, {
 		headers: {
@@ -58,7 +58,7 @@ export const fairyWho = async (serverId) => {
 	const allMaxedUsers = await prisma.user.findMany({
 		where: {
 			lastMaxed: {
-				gte: dayjs().startOf("day").toDate(),
+				gte: dayjs().tz("Asia/Singapore").startOf("day").toDate(),
 			},
 		},
 	})
@@ -66,7 +66,7 @@ export const fairyWho = async (serverId) => {
 	const allRunUsers = await prisma.user.findMany({
 		where: {
 			lastRun: {
-				gte: dayjs().startOf("day").toDate(),
+				gte: dayjs().tz("Asia/Singapore").startOf("day").toDate(),
 			},
 		},
 	})
