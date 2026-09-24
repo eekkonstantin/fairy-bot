@@ -1,5 +1,11 @@
 import dayjs from "dayjs"
+import timezone from "dayjs/plugin/timezone.js"
+import utc from "dayjs/plugin/utc.js"
 import { prisma } from "../db.js"
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.tz.setDefault("Asia/Singapore")
 
 export const markDone = async (userId, isRunning) => {
 	// mark the user as having completed their fairy picks for the day
@@ -57,6 +63,18 @@ export const fairyWho = async (serverId) => {
 		},
 	})
 	const allMaxedUserIds = new Set(allMaxedUsers.map((user) => user.discordId))
+	const allRunUsers = await prisma.user.findMany({
+		where: {
+			lastRun: {
+				gte: dayjs().startOf("day").toDate(),
+			},
+		},
+	})
+	const allRunUserIds = new Set(allRunUsers.map((user) => user.discordId))
 	const maxedUsers = serverUsersData.filter((user) => allMaxedUserIds.has(user.user.id))
-	return maxedUsers.map((user) => user.user.id)
+	const runUsers = serverUsersData.filter((user) => allRunUserIds.has(user.user.id))
+	return {
+		maxed: maxedUsers.map((user) => user.user.id),
+		run: runUsers.map((user) => user.user.id),
+	}
 }

@@ -108,12 +108,12 @@ app.post(
 					})
 				} else if (subcommandName === "who") {
 					const serverId = req.body.guild_id
-					const usersInServer = await fairyWho(serverId)
+					const { maxed, run } = await fairyWho(serverId)
 					return res.send({
 						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
 						data: {
 							flags: 4096, // suppress notifications
-							content: `Maxed users in server (${usersInServer.length}):\n${usersInServer.map((id) => `<@${id}>`).join("\n")}`,
+							content: `Maxed users in server (${maxed.length}):\n${maxed.map((id) => `<@${id}>`).join("\n")}\nCompleted fairy runs in server (${run.length}):\n${run.map((id) => `<@${id}>`).join(", ")}`,
 						},
 					})
 				} else if (subcommandName === "run") {
