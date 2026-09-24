@@ -58,6 +58,5 @@ export const fairyWho = async (serverId) => {
 	})
 	const allMaxedUserIds = new Set(allMaxedUsers.map((user) => user.discordId))
 	const maxedUsers = serverUsersData.filter((user) => allMaxedUserIds.has(user.user.id))
-	console.log(maxedUsers)
-	return maxedUsers
+	return maxedUsers.map((user) => user.user.id)
 }

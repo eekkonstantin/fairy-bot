@@ -100,23 +100,19 @@ app.post(
 					const thankUser = optionsMap.get("thank")
 
 					markDone(user)
-					if (thankUser) {
-						// Optionally handle thanking the user here
-						res.send({
-							type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-							data: {
-								content: `<@${user}> is maxed for today! Thanks <@${thankUser}>!`,
-							},
-						})
-					}
-					return
+					return res.send({
+						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+						data: {
+							content: `<@${user}> is maxed for today!${thankUser ? ` Thanks <@${thankUser}>` : ""}!`,
+						},
+					})
 				} else if (subcommandName === "who") {
 					const serverId = req.body.guild_id
 					const usersInServer = await fairyWho(serverId)
 					return res.send({
 						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
 						data: {
-							content: `Users in server: ${JSON.stringify(usersInServer)}`,
+							content: `Maxed users in server (${usersInServer.length}):\n${usersInServer.map((id) => `<@${id}>`).join("\n")}`,
 						},
 					})
 				} else if (subcommandName === "run") {
