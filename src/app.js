@@ -40,9 +40,10 @@ app.post(
 		if (type === InteractionType.APPLICATION_COMMAND) {
 			const { name, options } = data
 			console.log("code command received", data)
-			const optionsMap = new Map(options.map((opt) => [opt.name, opt.value]))
 
 			if (name === "code") {
+				const optionsMap = new Map(options.map((opt) => [opt.name, opt.value]))
+
 				const targetChannelId = optionsMap.get("channel") || req.body.channel_id
 				const messageDuration = optionsMap.get("duration")
 				const code = optionsMap.get("code")
@@ -88,32 +89,46 @@ app.post(
 				return
 			}
 
-			if (name === "fairy maxed") {
-				const user = optionsMap.get("sub") || caller.id
-				const thankUser = optionsMap.get("thank")
+			if (name === "fairy") {
+				const subcommand = options[0]
+				const subcommandName = subcommand?.name
+				const optionsMap = new Map(subcommand?.options.map((opt) => [opt.name, opt.value]))
 
-				// markDone(user)
-				// if (thankUser) {
-				// 	// Optionally handle thanking the user here
-				// 	res.send({
-				// 		type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-				// 		data: {
-				// 			content: `<@${user}> is maxed for today! Thanks <@${thankUser}>!`,
-				// 		},
-				// 	})
-				// }
-				return
-			}
+				if (subcommandName === "maxed") {
+					const user = optionsMap.get("sub") || caller.id
+					const thankUser = optionsMap.get("thank")
 
-			if (name === "fairy who") {
-				const serverId = req.body.guild_id
-				const usersInServer = await fairyWho(serverId)
-				return res.send({
-					type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-					data: {
-						content: `Users in server: ${JSON.stringify(usersInServer)}`,
-					},
-				})
+					// markDone(user)
+					if (thankUser) {
+						// Optionally handle thanking the user here
+						res.send({
+							type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+							data: {
+								content: `<@${user}> is maxed for today! Thanks <@${thankUser}>!`,
+							},
+						})
+					}
+					return
+				} else if (subcommandName === "who") {
+					const serverId = req.body.guild_id
+					const usersInServer = await fairyWho(serverId)
+					return res.send({
+						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+						data: {
+							content: `Users in server: ${JSON.stringify(usersInServer)}`,
+						},
+					})
+				} else if (subcommandName === "run") {
+					// Announcing a fairy run here
+					const user = optionsMap.get("host") || caller.id
+					markDone(user, true)
+					return res.send({
+						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+						data: {
+							content: `Fairy run by <@${user}>${optionsMap.get("note") ? `: ${optionsMap.get("note")}` : ""}.`,
+						},
+					})
+				}
 			}
 
 			console.error(`unknown command: ${name}`)

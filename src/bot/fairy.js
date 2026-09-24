@@ -1,6 +1,6 @@
-export const markDone = async (userId) => {
+export const markDone = async (userId, isRunning) => {
 	// mark the user as having completed their fairy picks for the day
-	console.log(`Marking user ${userId} as done with fairy picks for the day.`)
+	console.log(`Marking user ${userId} as done with fairy ${isRunning ? "run" : "picks"} for the day.`)
 
 	const existing = await prisma.user.findFirst({
 		where: {
@@ -13,7 +13,7 @@ export const markDone = async (userId) => {
 				id: existing.id,
 			},
 			data: {
-				lastMaxed: new Date(),
+				[`last${isRunning ? "Run" : "Maxed"}`]: new Date(),
 			},
 		})
 	} else {
@@ -29,7 +29,7 @@ export const markDone = async (userId) => {
 				discordId: userId,
 				username: userData.username,
 				avatar: userData.avatar,
-				lastMaxed: new Date(),
+				[`last${isRunning ? "Run" : "Maxed"}`]: new Date(),
 			},
 		})
 	}
@@ -54,5 +54,6 @@ export const fairyWho = async (serverId) => {
 	})
 	const allMaxedUserIds = new Set(allMaxedUsers.map((user) => user.discordId))
 	const maxedUsers = serverUsersData.filter((user) => allMaxedUserIds.has(user.user.id))
+	console.log(maxedUsers)
 	return maxedUsers
 }

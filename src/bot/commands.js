@@ -71,16 +71,16 @@ const FAIRY_COMMANDS = {
 			description: "Announce a fairy run in the current channel. NOTE: This will tag @everyone by default.",
 			options: [
 				{
-					type: 5,
-					name: "not-done-only",
-					description: "Only tag those who have not maxed fairy picks for the day.",
+					type: 9,
+					name: "host",
+					description: "The host of the fairy run (defaults to yourself).",
+				},
+				{
+					type: 3,
+					name: "note",
+					description: "Additional remarks to add to the fairy run announcement.",
 				},
 			],
-		},
-		{
-			type: 1,
-			name: "settings", // provides the url to frontend settings page for the bot
-			description: "Configure fairy run and other settings.",
 		},
 	],
 }
