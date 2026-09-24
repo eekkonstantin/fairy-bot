@@ -27,6 +27,7 @@ export const markDone = async (userId, isRunning) => {
 			},
 		})
 		const userData = await findUser.json()
+		console.log("Fetched user data from Discord:", userData)
 		await prisma.user.create({
 			data: {
 				discordId: userId,

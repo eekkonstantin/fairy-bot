@@ -126,7 +126,7 @@ app.post(
 					return res.send({
 						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
 						data: {
-							content: `Fairy run by <@${user}>${optionsMap.get("note") ? `: ${optionsMap.get("note")}` : ""}.`,
+							content: `Fairy run by <@${user}>${optionsMap.get("note") ? `: ${optionsMap.get("note")}` : "!"}`,
 						},
 					})
 				}
