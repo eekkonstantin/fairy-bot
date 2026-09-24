@@ -47,7 +47,7 @@ export const markDone = async (userId, isRunning) => {
 
 export const fairyWho = async (serverId) => {
 	// check who in the current channel has maxed fairy picks for the day
-	console.log(`Checking who in server has maxed fairy picks for the day.`)
+	console.log(`Checking who in server has maxed fairy picks for today (${dayjs().format("D MMM YYYY")}).`)
 
 	const usersInServer = await fetch(`https://discord.com/api/v10/guilds/${serverId}/members?limit=1000`, {
 		headers: {
@@ -76,5 +76,33 @@ export const fairyWho = async (serverId) => {
 	return {
 		maxed: maxedUsers.map((user) => user.user.id),
 		run: runUsers.map((user) => user.user.id),
+	}
+}
+
+export const undo = async (userId, what) => {
+	// undo a previously marked fairy run or max for the user
+	console.log(`Undoing ${what} for user ${userId}.`)
+	const existing = await prisma.user.findFirst({
+		where: {
+			discordId: userId,
+		},
+	})
+	if (existing) {
+		const data = {}
+		if (what === "run" || what === "both") {
+			data.lastRun = null
+		}
+		if (what === "max" || what === "both") {
+			data.lastMaxed = null
+		}
+		await prisma.user.update({
+			where: {
+				id: existing.id,
+			},
+			data,
+		})
+	} else {
+		console.log(`User ${userId} not found.`)
+		throw new Error(`User ${userId} not found.`)
 	}
 }

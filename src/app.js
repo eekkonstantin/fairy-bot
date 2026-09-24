@@ -126,6 +126,21 @@ app.post(
 							content: `Fairy run by <@${user}>${optionsMap.get("note") ? `: ${optionsMap.get("note")}` : "!"}`,
 						},
 					})
+				} else if (subcommandName === "undo") {
+					const user = optionsMap.get("user") || caller.id
+					const what = optionsMap.get("what")
+					try {
+						await undo(user, what)
+						return res.send({
+							type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+							data: {
+								content: `Undid ${what} for <@${user}>.`,
+							},
+						})
+					} catch (error) {
+						console.error("failed to undo fairy action", error)
+						return res.status(500).json({ error: "failed to undo fairy action" })
+					}
 				}
 			}
 
