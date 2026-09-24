@@ -103,7 +103,7 @@ app.post(
 					return res.send({
 						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
 						data: {
-							content: `<@${user}> is maxed for today!${thankUser ? ` Thanks <@${thankUser}>` : ""}!`,
+							content: `<@${user}> is maxed for today${thankUser ? `. Thanks <@${thankUser}>` : ""}!`,
 						},
 					})
 				} else if (subcommandName === "who") {
@@ -112,6 +112,7 @@ app.post(
 					return res.send({
 						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
 						data: {
+							flags: 4096, // suppress notifications
 							content: `Maxed users in server (${usersInServer.length}):\n${usersInServer.map((id) => `<@${id}>`).join("\n")}`,
 						},
 					})
