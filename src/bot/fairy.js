@@ -125,6 +125,7 @@ export const multiMax = async (userIds) => {
 	})
 	const existingUserIds = new Set(existingUsers.map((user) => user.discordId))
 
+	const creationData = []
 	for (const userId of uniqueUserIds) {
 		if (existingUserIds.has(userId)) continue
 
@@ -135,33 +136,36 @@ export const multiMax = async (userIds) => {
 				},
 			})
 			const userData = await userResponse.json()
-			await prisma.user.create({
-				data: {
-					discordId: userId,
-					username: userData.username ?? null,
-					avatar: userData.avatar ?? null,
-					lastMaxed: now,
-				},
+			creationData.push({
+				discordId: userId,
+				username: userData.username ?? null,
+				avatar: userData.avatar ?? null,
+				lastMaxed: now,
 			})
 		} catch (error) {
 			console.log(`Failed to fetch Discord user ${userId}; creating minimal record instead.`)
-			await prisma.user.create({
-				data: {
-					discordId: userId,
-					lastMaxed: now,
-				},
+			creationData.push({
+				discordId: userId,
+				lastMaxed: now,
 			})
 		}
 	}
+	if (creationData.length > 0) {
+		await prisma.user.createMany({
+			data: creationData,
+		})
+	}
 
-	await prisma.user.updateMany({
-		where: {
-			discordId: {
-				in: uniqueUserIds,
+	// still has remaining existing ids to update
+	if (creationData.length < uniqueUserIds.length)
+		await prisma.user.updateMany({
+			where: {
+				discordId: {
+					in: uniqueUserIds,
+				},
 			},
-		},
-		data: {
-			lastMaxed: now,
-		},
-	})
+			data: {
+				lastMaxed: now,
+			},
+		})
 }
