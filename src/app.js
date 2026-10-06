@@ -113,7 +113,7 @@ app.post(
 					return res.send({
 						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
 						data: {
-							content: `Marked ${markedUsers.length} users as maxed for today:\n${markedUsers.map((id) => `<@${id}>`).join("\n")}`,
+							content: `Marked ${markedUsers.length} users as maxed for today:\n${markedUsers.map(({ id }) => `<@${id}>`).join("\n")}`,
 						},
 					})
 				} else if (subcommandName === "who") {

@@ -73,6 +73,7 @@ const FAIRY_COMMANDS = {
 				{
 					type: 3,
 					name: "users",
+					required: true,
 					description: "List of users, separated by space.",
 				},
 			],
