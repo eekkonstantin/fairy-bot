@@ -39,7 +39,7 @@ app.post(
 		 * See https://discord.com/developers/docs/interactions/application-commands#slash-commands
 		 */
 		if (type === InteractionType.APPLICATION_COMMAND) {
-			const { name, options } = data
+			const { name, options, resolved } = data
 			console.log("code command received", data)
 
 			if (name === "code") {
@@ -107,17 +107,15 @@ app.post(
 						},
 					})
 				} else if (subcommandName === "multi") {
-					console.log("users to mark as maxed:", optionsMap.get("users"))
-					// const users = (optionsMap.get("users") || "").split(" ").filter(Boolean)
-					// if (users.length > 0) {
-					// 	await multiMax(users)
-					// }
-					// return res.send({
-					// 	type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-					// 	data: {
-					// 		content: `Marked users as maxed for today: ${users.map((id) => `<@${id}>`).join(", ")}`,
-					// 	},
-					// })
+					const markedUsers = Object.values(resolved?.users) || []
+					await multiMax(markedUsers)
+
+					return res.send({
+						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+						data: {
+							content: `Marked ${markedUsers.length} users as maxed for today:\n${markedUsers.map((id) => `<@${id}>`).join("\n")}`,
+						},
+					})
 				} else if (subcommandName === "who") {
 					const serverId = req.body.guild_id
 					const { maxed, run } = await fairyWho(serverId)
