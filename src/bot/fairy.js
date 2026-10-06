@@ -107,11 +107,12 @@ export const undo = async (userId, what) => {
 	}
 }
 
-export const multiMax = async (userIds) => {
+export const multiMax = async (users) => {
 	// mark multiple users as maxed for the day
-	const uniqueUserIds = [...new Set(userIds)]
-	console.log(`Marking multiple users as maxed for today: ${uniqueUserIds.join(", ")}.`)
+	const uniqueUsers = [...new Set(users)]
+	console.log(`Marking multiple users as maxed for today: ${uniqueUsers.map(({ username }) => username).join(", ")}.`)
 	const now = new Date()
+	const uniqueUserIds = uniqueUsers.map(({ id }) => id)
 
 	const existingUsers = await prisma.user.findMany({
 		where: {
@@ -142,7 +143,7 @@ export const multiMax = async (userIds) => {
 				avatar: userData.avatar ?? null,
 				lastMaxed: now,
 			})
-		} catch (error) {
+		} catch (_error) {
 			console.log(`Failed to fetch Discord user ${userId}; creating minimal record instead.`)
 			creationData.push({
 				discordId: userId,
