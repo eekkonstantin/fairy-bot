@@ -3,7 +3,7 @@ import "dotenv/config"
 import express from "express"
 import { getMessage } from "./bot/code.js"
 import { DiscordRequest } from "./bot/discord.js"
-import { fairyWho, markDone } from "./bot/fairy.js"
+import { fairyWho, markDone, multiMax } from "./bot/fairy.js"
 import { addCodeMessageSchedule, wakeScheduler } from "./bot/scheduler.js"
 
 // Create an express app
