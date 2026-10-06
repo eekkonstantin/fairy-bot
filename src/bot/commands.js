@@ -45,6 +45,11 @@ const FAIRY_COMMANDS = {
 	options: [
 		{
 			type: 1,
+			name: "who",
+			description: "Check who in the server has maxed fairy picks for the day.",
+		},
+		{
+			type: 1,
 			name: "maxed",
 			description: "Describes yourself as maxed fairy picks for the day.",
 			options: [
@@ -62,8 +67,15 @@ const FAIRY_COMMANDS = {
 		},
 		{
 			type: 1,
-			name: "who",
-			description: "Check who in the server has maxed fairy picks for the day.",
+			name: "multi",
+			description: "Mark multiple people as maxed for the day.",
+			options: [
+				{
+					type: 3,
+					name: "users",
+					description: "List of users, separated by space.",
+				},
+			],
 		},
 		{
 			type: 1,

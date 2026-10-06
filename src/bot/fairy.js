@@ -106,3 +106,19 @@ export const undo = async (userId, what) => {
 		throw new Error(`User ${userId} not found.`)
 	}
 }
+
+export const multiMax = async (userIds) => {
+	// mark multiple users as maxed for the day
+	console.log(`Marking multiple users as maxed for today: ${userIds.join(", ")}.`)
+	const now = new Date()
+	await prisma.user.updateMany({
+		where: {
+			discordId: {
+				in: userIds,
+			},
+		},
+		data: {
+			lastMaxed: now,
+		},
+	})
+}

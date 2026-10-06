@@ -106,6 +106,18 @@ app.post(
 							content: `<@${user}> is maxed for today${thankUser ? `. Thanks <@${thankUser}>` : ""}!`,
 						},
 					})
+				} else if (subcommandName === "multi") {
+					console.log("users to mark as maxed:", optionsMap.get("users"))
+					// const users = (optionsMap.get("users") || "").split(" ").filter(Boolean)
+					// if (users.length > 0) {
+					// 	await multiMax(users)
+					// }
+					// return res.send({
+					// 	type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+					// 	data: {
+					// 		content: `Marked users as maxed for today: ${users.map((id) => `<@${id}>`).join(", ")}`,
+					// 	},
+					// })
 				} else if (subcommandName === "who") {
 					const serverId = req.body.guild_id
 					const { maxed, run } = await fairyWho(serverId)
