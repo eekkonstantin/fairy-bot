@@ -8,7 +8,7 @@ dayjs.tz.setDefault("Asia/Singapore")
 
 export const getTimers = (duration) => {
 	const now = dayjs().tz("Asia/Singapore")
-	const daily = now.hour(23).minute(59).second(0).millisecond(0).toDate()
+	const daily = now.hour(14).minute(0).second(0).millisecond(0).toDate()
 	switch (duration) {
 		case "test":
 			return {
@@ -17,22 +17,22 @@ export const getTimers = (duration) => {
 			}
 		case "1":
 			return {
-				expireAt: now.hour(22).minute(0).second(0).millisecond(0).toDate(),
+				expireAt: now.hour(12).minute(0).second(0).millisecond(0).toDate(),
 				deleteAt: daily,
 			}
 		case "2":
 			return {
-				expireAt: now.hour(19).minute(0).second(0).millisecond(0).toDate(),
+				expireAt: now.hour(9).minute(0).second(0).millisecond(0).toDate(),
 				deleteAt: daily,
 			}
 		case "3":
 			return {
-				expireAt: now.hour(20).minute(30).second(0).millisecond(0).toDate(),
+				expireAt: now.hour(10).minute(30).second(0).millisecond(0).toDate(),
 				deleteAt: daily,
 			}
 		case "4":
 			return {
-				expireAt: now.hour(21).minute(45).second(0).millisecond(0).toDate(),
+				expireAt: now.hour(11).minute(15).second(0).millisecond(0).toDate(),
 				deleteAt: daily,
 			}
 		case "week":
@@ -45,7 +45,7 @@ export const getTimers = (duration) => {
 	}
 }
 
-export const splitCodes = (codeArr) => "\`" + codeArr.join("\`\n\`") + "\`"
+export const splitCodes = (codeArr) => "`" + codeArr.join("`\n`") + "`"
 
 export const getMessage = (code, duration) => {
 	const now = dayjs().tz("Asia/Singapore")
@@ -55,22 +55,24 @@ export const getMessage = (code, duration) => {
 			return `TESTING CODE (expires <t:${testExpiry}:f>):\n\n\`${code}\``
 		}
 		case "1":
-			return `1st code (expires <t:${now.hour(22).minute(0).unix()}:f>):\n\n\`${code}\``
+			return `1st code (expires <t:${now.hour(12).minute(0).unix()}:f>):\n\n\`${code}\``
 		case "2":
-			return `2nd code (expires <t:${now.hour(19).minute(0).unix()}:f>):\n\n\`${code}\``
+			return `2nd code (expires <t:${now.hour(9).minute(0).unix()}:f>):\n\n\`${code}\``
 		case "3":
-			return `3rd code (expires <t:${now.hour(20).minute(30).unix()}:f>):\n\n\`${code}\``
+			return `3rd code (expires <t:${now.hour(10).minute(30).unix()}:f>):\n\n\`${code}\``
 		case "4":
-			return `4th code (expires <t:${now.hour(21).minute(45).unix()}:f>):\n\n\`${code}\``
-		case "week":
+			return `4th code (expires <t:${now.hour(11).minute(15).unix()}:f>):\n\n\`${code}\``
+		case "week": {
 			const exp = now.day(0).hour(23).minute(59).add(1, "week")
 
 			return `WEEKLY CODE (expires <t:${exp.unix()}:F>):\n\n\`${code}\``
-		default:
+		}
+		default: {
 			const codes = code.split(" ")
 			const plural = codes.length > 1 ? "S" : ""
 
 			return `NEW REDEEMABLE CODE${plural} *(unknown expiry)*:\n\n${splitCodes(codes)}`
+		}
 	}
 }
 
