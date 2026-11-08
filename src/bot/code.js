@@ -6,62 +6,71 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.tz.setDefault("Asia/Singapore")
 
-export const getTimers = (duration) => {
+const getTime = (key) => {
 	const now = dayjs().tz("Asia/Singapore")
-	const daily = now.hour(14).minute(0).second(0).millisecond(0).toDate()
-	switch (duration) {
-		case "test":
-			return {
-				expireAt: now.add(40, "second").toDate(),
-				deleteAt: now.add(1, "minute").toDate(),
-			}
+	const daily = now.hour(14).minute(0).second(0).millisecond(0)
+	switch (key) {
 		case "1":
 			return {
-				expireAt: now.hour(12).minute(0).second(0).millisecond(0).toDate(),
-				deleteAt: daily,
+				expire: now.hour(13).minute(0).second(0).millisecond(0),
+				delete: daily,
 			}
 		case "2":
 			return {
-				expireAt: now.hour(9).minute(0).second(0).millisecond(0).toDate(),
-				deleteAt: daily,
+				expire: now.hour(10).minute(0).second(0).millisecond(0),
+				delete: daily,
 			}
 		case "3":
 			return {
-				expireAt: now.hour(10).minute(30).second(0).millisecond(0).toDate(),
-				deleteAt: daily,
+				expire: now.hour(11).minute(30).second(0).millisecond(0),
+				delete: daily,
 			}
 		case "4":
 			return {
-				expireAt: now.hour(11).minute(15).second(0).millisecond(0).toDate(),
-				deleteAt: daily,
-			}
-		case "week":
-			return {
-				expireAt: now.day(0).hour(23).minute(59).second(0).millisecond(0).add(1, "week").toDate(),
-				deleteAt: now.day(1).hour(12).minute(0).second(0).millisecond(0).add(1, "week").toDate(),
+				expire: now.hour(12).minute(15).second(0).millisecond(0),
+				delete: daily,
 			}
 		default:
-			return {}
+			return {
+				expire: now.add(40, "second"),
+				delete: now.add(1, "minute"),
+			}
 	}
 }
 
-export const splitCodes = (codeArr) => "`" + codeArr.join("`\n`") + "`"
+export const getTimers = (duration) => {
+	const now = dayjs().tz("Asia/Singapore")
+	if (duration === "week")
+		return {
+			expireAt: now.day(0).hour(23).minute(59).second(0).millisecond(0).add(1, "week").toDate(),
+			deleteAt: now.day(1).hour(12).minute(0).second(0).millisecond(0).add(1, "week").toDate(),
+		}
+
+	const { expire, delete: del } = getTime(duration)
+
+	return {
+		expireAt: expire.toDate(),
+		deleteAt: del.toDate(),
+	}
+}
+
+export const splitCodes = (codeArr) => `\`${codeArr.join("`\n`")}\``
 
 export const getMessage = (code, duration) => {
 	const now = dayjs().tz("Asia/Singapore")
 	switch (duration) {
 		case "test": {
-			const testExpiry = now.add(40, "seconds").unix()
+			const testExpiry = getTime("test").expire.unix()
 			return `TESTING CODE (expires <t:${testExpiry}:f>):\n\n\`${code}\``
 		}
 		case "1":
-			return `1st code (expires <t:${now.hour(12).minute(0).unix()}:f>):\n\n\`${code}\``
+			return `1st code (expires <t:${getTime("1").expire.unix()}:f>):\n\n\`${code}\``
 		case "2":
-			return `2nd code (expires <t:${now.hour(9).minute(0).unix()}:f>):\n\n\`${code}\``
+			return `2nd code (expires <t:${getTime("2").expire.unix()}:f>):\n\n\`${code}\``
 		case "3":
-			return `3rd code (expires <t:${now.hour(10).minute(30).unix()}:f>):\n\n\`${code}\``
+			return `3rd code (expires <t:${getTime("3").expire.unix()}:f>):\n\n\`${code}\``
 		case "4":
-			return `4th code (expires <t:${now.hour(11).minute(15).unix()}:f>):\n\n\`${code}\``
+			return `4th code (expires <t:${getTime("4").expire.unix()}:f>):\n\n\`${code}\``
 		case "week": {
 			const exp = now.day(0).hour(23).minute(59).add(1, "week")
 
